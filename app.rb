@@ -1,3 +1,6 @@
+require 'dotenv'
+Dotenv.load
+
 class GeoStreamer
   # TODO: reload on SIG__whatever__
   # TODO: add stats
@@ -29,5 +32,6 @@ class AsyncProcessor
   end
 end
 
-#geo = GeoStreamer.new #credentials
+# config = {consumer_key: ENV["CONSUMER_KEY"], consumer_secret: ENV["CONSUMER_SECRET"], access_token: ENV["ACCESS_TOKEN"], access_token_secret: ENV[ "ACCESS_SECRET"]}
+#geo = GeoStreamer.new config
 #geo.track_keywords 'a, b'
