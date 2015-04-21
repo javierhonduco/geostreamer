@@ -10,13 +10,31 @@ class GeoStreamer
     @client = Twitter::Streaming::Client.new(config)
     @processor = DummyAsyncProcessor.new
     @pids = []
+
     Signal.trap('INT') { 
       @pids.each do |pid|
         Process.kill('TERM', pid)
+        @pids.shift
       end
       exit
     }
+
+    Signal.trap('HUP') { 
+      Thread.new{
+        reeschedule!
+      }
+    }
   end
+  
+  def reeschedule!
+    @pids.each do |pid|
+      puts "reescheduling #{pid}"
+      Process.kill('TERM', pid)
+      @pids.shift
+    end
+    track_keywords 'a,b'
+  end
+
   def track_location locations
     @pids << Process.fork do
       client.filter(locations: locations) do |tweet|
@@ -65,6 +83,8 @@ config = {
   access_token: ENV['ACCESS_TOKEN'], 
   access_token_secret: ENV['ACCESS_SECRET']
 }
+
+puts "pid: #{Process.pid}"
 
 geo = GeoStreamer.new config
 geo.track_keywords 'a, b'
