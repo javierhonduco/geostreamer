@@ -5,7 +5,6 @@ Dotenv.load
 class GeoStreamer
   # TODO: reload on SIG__whatever__
   # TODO: add stats
-  attr_accessor :client, :keywords_pid, :loop_pid
   def initialize config
     @client = Twitter::Streaming::Client.new(config)
     @processor = DummyAsyncProcessor.new
@@ -42,6 +41,7 @@ class GeoStreamer
       end
     end
   end
+
   def track_keywords keywords
     @pids << Process.fork do
       client.filter(track: keywords) do |tweet|
@@ -53,6 +53,7 @@ class GeoStreamer
   def process tweet
     @processor.process(tweet)
   end
+
   def loop every
     @pids << Process.fork do 
       while true
@@ -61,6 +62,7 @@ class GeoStreamer
       end
     end
   end
+
   def collect!
     @pids.each do |pid|
       Process.wait(pid)
