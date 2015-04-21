@@ -5,6 +5,7 @@ Dotenv.load
 class GeoStreamer
   # TODO: reload on SIG__whatever__
   # TODO: add stats
+  attr_accessor :client
   def initialize config
     @client = Twitter::Streaming::Client.new(config)
     @processor = DummyAsyncProcessor.new
