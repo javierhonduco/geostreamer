@@ -53,7 +53,12 @@ end
 
 
 
-config = {consumer_key: ENV["CONSUMER_KEY"], consumer_secret: ENV["CONSUMER_SECRET"], access_token: ENV["ACCESS_TOKEN"], access_token_secret: ENV[ "ACCESS_SECRET"]}
+config = {
+  consumer_key: ENV['CONSUMER_KEY'], 
+  consumer_secret: ENV['CONSUMER_SECRET'], 
+  access_token: ENV['ACCESS_TOKEN'], 
+  access_token_secret: ENV['ACCESS_SECRET']
+}
 
 geo = GeoStreamer.new config
 geo.track_keywords 'a, b'
