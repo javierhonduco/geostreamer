@@ -9,21 +9,23 @@ class GeoStreamer
   def initialize config
     @client = Twitter::Streaming::Client.new(config)
     @processor = DummyAsyncProcessor.new
+    @pids = []
     Signal.trap('INT') { 
-      Process.kill('TERM', @keywords_pid)
-      Process.kill('TERM', @loop_pid)
+      @pids.each do |pid|
+        Process.kill('TERM', pid)
+      end
       exit
     }
   end
   def track_location locations
-    @locations_pid = Process.fork do
+    @pids << Process.fork do
       client.filter(locations: locations) do |tweet|
         process(tweet)
       end
     end
   end
   def track_keywords keywords
-    @keywords_pid = Process.fork do
+    @pids << Process.fork do
       client.filter(track: keywords) do |tweet|
         process(tweet)
       end
@@ -34,11 +36,16 @@ class GeoStreamer
     @processor.process(tweet)
   end
   def loop every
-    @loop_pid = Process.fork do 
+    @pids << Process.fork do 
       while true
         puts 'yaay'
         sleep every
       end
+    end
+  end
+  def collect!
+    @pids.each do |pid|
+      Process.wait(pid)
     end
   end
 end
@@ -52,7 +59,6 @@ class DummyAsyncProcessor
 end
 
 
-
 config = {
   consumer_key: ENV['CONSUMER_KEY'], 
   consumer_secret: ENV['CONSUMER_SECRET'], 
@@ -63,6 +69,4 @@ config = {
 geo = GeoStreamer.new config
 geo.track_keywords 'a, b'
 geo.loop 0.1
-
-Process.wait geo.keywords_pid
-Process.wait geo.loop_pid
+geo.collect!
