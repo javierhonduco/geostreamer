@@ -3,10 +3,14 @@ GEM
   specs:
     addressable (2.3.8)
     buftok (0.2.0)
+    celluloid (0.16.0)
+      timers (~> 4.0.0)
+    connection_pool (2.1.0)
     dotenv (2.0.1)
     equalizer (0.0.11)
     faraday (0.9.1)
       multipart-post (>= 1.2, < 3)
+    hitimes (1.2.2)
     http (0.6.4)
       http_parser.rb (~> 0.6.0)
     http_parser.rb (0.6.0)
@@ -15,8 +19,19 @@ GEM
       thread_safe (~> 0.3, >= 0.3.1)
     multipart-post (2.0.0)
     naught (1.0.0)
+    redis (3.2.0)
+    redis-namespace (1.5.1)
+      redis (~> 3.0, >= 3.0.4)
+    sidekiq (3.3.0)
+      celluloid (>= 0.16.0)
+      connection_pool (>= 2.0.0)
+      json
+      redis (>= 3.0.6)
+      redis-namespace (>= 1.3.1)
     simple_oauth (0.3.1)
     thread_safe (0.3.5)
+    timers (4.0.1)
+      hitimes
     twitter (5.14.0)
       addressable (~> 2.3)
       buftok (~> 0.2.0)
@@ -34,4 +49,5 @@ PLATFORMS
 
 DEPENDENCIES
   dotenv
+  sidekiq
   twitter

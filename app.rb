@@ -1,5 +1,8 @@
 require 'twitter'
 require 'dotenv'
+require 'net/http'
+require 'sidekiq'
+
 Dotenv.load
 
 class GeoStreamer
@@ -8,7 +11,7 @@ class GeoStreamer
 
   def initialize config
     @client = Twitter::Streaming::Client.new(config)
-    @processor = DummyAsyncProcessor.new
+    @processor = DummyAsyncProcessor
     @pids = []
 
     Signal.trap('INT') { 
@@ -32,7 +35,7 @@ class GeoStreamer
       Process.kill('TERM', pid)
       @pids.shift
     end
-    track_keywords 'a,b'
+    track_keywords 'justin,bieber'
   end
 
   def track_location locations
@@ -52,7 +55,8 @@ class GeoStreamer
   end
 
   def process tweet
-    @processor.process(tweet)
+    lat, long = tweet.geo.lat, tweet.geo.long
+    @processor.perform_async(tweet.text.to_s, lat, long) unless lat.nil? || long.nil?
   end
 
   def loop every
@@ -72,10 +76,15 @@ class GeoStreamer
 end
 
 class DummyAsyncProcessor
-  def process tweet
-    # do nothing for now
-    # should insert the normalized tweet in the db
-    puts tweet
+  include Sidekiq::Worker
+  
+  def perform tweet, lat, long
+    sql = "INSERT INTO untitled_table_1(the_geom, description, name) VALUES (ST_SetSRID(ST_Point(#{lat}, #{long}), 4326), '#{tweet}', '')"
+
+    cartodb_api = URI.escape "https://#{ENV['CARTODB_ACCOUNT']}.cartodb.com/api/v2/sql?q=#{sql}&api_key=#{ENV['CARTODB_API_KEY']}"
+    Net::HTTP.get(URI.parse(cartodb_api))
+
+    puts 'Sent! :)'
   end
 end
 
@@ -87,9 +96,15 @@ config = {
   access_token_secret: ENV['ACCESS_SECRET']
 }
 
-puts "pid: #{Process.pid}"
+Sidekiq.configure_client do |config|
+  config.redis = {:namespace => 'untitled_ns'}
+end
 
-geo = GeoStreamer.new config
-geo.track_keywords 'a, b'
-geo.loop 0.1
-geo.collect!
+if __FILE__ == $0
+  puts "pid: #{Process.pid}"
+
+  geo = GeoStreamer.new config
+  geo.track_keywords 'a, b'
+  #geo.loop 0.1
+  geo.collect!
+end
