@@ -79,7 +79,7 @@ class DummyAsyncProcessor
   include Sidekiq::Worker
   
   def perform tweet, lat, long
-    sql = "INSERT INTO untitled_table_1(the_geom, description, name) VALUES (ST_SetSRID(ST_Point(#{lat}, #{long}), 4326), '#{tweet}', '')"
+    sql = "INSERT INTO untitled_table_1(the_geom, description, name) VALUES (ST_SetSRID(ST_Point(#{long}, #{lat}), 4326), '#{tweet}', '')"
 
     cartodb_api = URI.escape "https://#{ENV['CARTODB_ACCOUNT']}.cartodb.com/api/v2/sql?q=#{sql}&api_key=#{ENV['CARTODB_API_KEY']}"
     Net::HTTP.get(URI.parse(cartodb_api))
